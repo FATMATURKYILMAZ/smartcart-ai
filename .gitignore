@@ -42,3 +42,9 @@ application-local.properties
 
 # Frontend dependencies
 node_modules/
+# Frontend build output
+frontend/dist/
+
+# Environment secrets
+.env.*
+!.env.example
