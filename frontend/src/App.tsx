@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import "./App.css";
@@ -17,6 +16,7 @@ const API_URL = "http://localhost:8081/api/products";
 const categories = ["All", "Headphones", "Mice", "Other"];
 const editableCategories = ["Headphones", "Mice", "Other"];
 
+// Ürün kategorisini, isim ve açıklamasına göre tahmin eder.
 function inferCategory(product: Product): string {
   const name = (product.name ?? "").toLowerCase();
   const description = (product.description ?? "").toLowerCase();
@@ -42,10 +42,55 @@ function inferCategory(product: Product): string {
   return "Other";
 }
 
+// Veritabanında kategori varsa onu kullanır.
 function getCategory(product: Product): string {
-  // Veritabanındaki kategori varsa onu kullan.
-  // Eski kayıtlarda kategori null ise geçici olarak tahmin et.
-  return product.category || inferCategory(product);
+  const inferredCategory = inferCategory(product);
+
+  // Ürün adı veya açıklaması kulaklık ya da mouse olduğunu gösteriyorsa
+  // eski Other kayıtlarında da doğru kategoriyi kullan.
+  if (inferredCategory !== "Other") {
+    return inferredCategory;
+  }
+
+  // Diğer durumlarda veritabanındaki kategoriyi kullan.
+  return product.category || "Other";
+}
+
+// Ürün adına ve açıklamasına göre uygun görseli seçer.
+function getProductImage(product: Product, productCategory: string): string {
+  const searchText =
+    `${product.name} ${product.description ?? ""}`.toLowerCase();
+
+  // Mouse görseli
+  if (
+    productCategory === "Mice" ||
+    searchText.includes("mouse") ||
+    searchText.includes("fare")
+  ) {
+    return "https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=800&q=80";
+  }
+
+  // Kulaklık görseli
+  if (
+    productCategory === "Headphones" ||
+    searchText.includes("kulaklık") ||
+    searchText.includes("headphone")
+  ) {
+    return "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80";
+  }
+
+  // Kol saati görseli
+  if (searchText.includes("saat") || searchText.includes("watch")) {
+    return "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
+  }
+
+  // Hoparlör görseli
+  if (searchText.includes("hoparlör") || searchText.includes("speaker")) {
+    return "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=800&q=80";
+  }
+
+  // Diğer ürünler için teknoloji temalı görsel
+  return "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80";
 }
 
 function App() {
@@ -64,6 +109,7 @@ function App() {
   const [stock, setStock] = useState("");
   const [category, setCategory] = useState("Headphones");
 
+  // Backend üzerinden ürünleri getirir.
   async function fetchProducts() {
     try {
       const response = await fetch(API_URL);
@@ -73,6 +119,7 @@ function App() {
       }
 
       const data: Product[] = await response.json();
+
       setProducts(data);
       setError("");
     } catch {
@@ -82,10 +129,12 @@ function App() {
     }
   }
 
+  // Sayfa ilk açıldığında ürünleri getirir.
   useEffect(() => {
     void fetchProducts();
   }, []);
 
+  // Arama ve kategori filtreleme işlemleri.
   const filteredProducts = products.filter((product) => {
     const query = searchTerm.trim().toLowerCase();
 
@@ -94,12 +143,12 @@ function App() {
       (product.description ?? "").toLowerCase().includes(query);
 
     const matchesCategory =
-      selectedCategory === "All" ||
-      getCategory(product) === selectedCategory;
+      selectedCategory === "All" || getCategory(product) === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
 
+  // Form alanlarını temizler.
   function resetForm() {
     setName("");
     setDescription("");
@@ -109,6 +158,7 @@ function App() {
     setEditingId(null);
   }
 
+  // Düzenlenecek ürünü forma aktarır.
   function startEditing(product: Product) {
     setEditingId(product.id);
     setName(product.name);
@@ -116,6 +166,7 @@ function App() {
     setPrice(String(product.price));
     setStock(String(product.stock));
     setCategory(getCategory(product));
+
     setError("");
     setSuccess("");
 
@@ -125,8 +176,10 @@ function App() {
     });
   }
 
+  // Yeni ürün ekleme ve mevcut ürünü güncelleme işlemi.
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     setError("");
     setSuccess("");
 
@@ -157,6 +210,7 @@ function App() {
 
     try {
       const isEditing = editingId !== null;
+
       const url = isEditing ? `${API_URL}/${editingId}` : API_URL;
 
       const response = await fetch(url, {
@@ -175,6 +229,7 @@ function App() {
 
       if (!response.ok) {
         const responseText = await response.text();
+
         throw new Error(
           `Failed to ${isEditing ? "update" : "add"} product. ${
             responseText || `HTTP ${response.status}`
@@ -192,14 +247,13 @@ function App() {
 
       await fetchProducts();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong.",
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setSaving(false);
     }
   }
 
+  // Ürün silme işlemi.
   async function handleDelete(product: Product) {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${product.name}"?`,
@@ -224,36 +278,132 @@ function App() {
       }
 
       setSuccess("Product deleted successfully!");
+
       await fetchProducts();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong.",
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     }
   }
 
   return (
     <main className="app">
+      {/* Üst navigasyon */}
+      {/* Marketplace Header */}
       <header className="navbar">
         <a className="brand" href="/">
           SmartCart <span>AI</span>
         </a>
 
-        <span className="tagline">
-          Your smarter shopping experience 🛒
-        </span>
+        <div className="header-search">
+          <input
+            type="search"
+            placeholder="Search products, categories or brands..."
+            aria-label="Search products"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          <span>⌕</span>
+        </div>
+
+        <div className="header-actions">
+          <button type="button" className="header-action">
+            ♙ <span>My Account</span>
+          </button>
+
+          <button type="button" className="header-action">
+            ♡ <span>Favorites</span>
+          </button>
+
+          <button type="button" className="header-action">
+            🛒 <span>My Cart</span>
+          </button>
+        </div>
       </header>
+      {/* Category Navigation */}
+      {/* Category Navigation */}
+<nav className="category-nav">
+  {categories.map((item) => (
+    <button
+      key={item}
+      type="button"
+      className={selectedCategory === item ? "active" : ""}
+      onClick={() => {
+        setSelectedCategory(item);
+        document.getElementById("products")?.scrollIntoView({
+          behavior: "smooth",
+        });
+      }}
+    >
+      {item === "All" ? "All Products" : item}
+    </button>
+  ))}
+</nav>
 
-      <section className="hero">
-        <p className="eyebrow">SMARTER SHOPPING</p>
-        <h1>A smarter way to shop.</h1>
-        <p className="hero-description">
-          Discover products, explore your options, and enjoy a smarter
-          shopping experience.
-        </p>
-      </section>
+      {/* Hero Banner */}
+<section className="hero">
+  <div className="hero-content">
+    <span className="hero-badge">
+      ✨ AI-POWERED SHOPPING
+    </span>
 
-      <section className="products">
+    <h1>
+      Find What You Love.
+      <br />
+      Shop Smarter.
+    </h1>
+
+    <p className="hero-description">
+      Discover products you'll love with intelligent recommendations
+      and a shopping experience designed around you.
+    </p>
+
+    <button
+      className="hero-button"
+      onClick={() =>
+        document.getElementById("products")?.scrollIntoView({
+          behavior: "smooth",
+        })
+      }
+    >
+      Explore Products →
+    </button>
+  </div>
+
+  <div className="hero-visual">
+    <div className="hero-circle">
+      <span>AI</span>
+      <small>SMART SHOPPING</small>
+    </div>
+  </div>
+</section>
+{/* Shopping Highlights */}
+<section className="shopping-highlights">
+  <div className="highlight-card">
+    <span className="highlight-icon">🎧</span>
+    <div>
+      <h3>Tech Essentials</h3>
+      <p>Technology for everyday life.</p>
+    </div>
+  </div>
+
+  <div className="highlight-card">
+    <span className="highlight-icon">✨</span>
+    <div>
+      <h3>Smart Choices</h3>
+      <p>Discover products you'll love.</p>
+    </div>
+  </div>
+
+  <div className="highlight-card">
+    <span className="highlight-icon">🤖</span>
+    <div>
+      <h3>AI Recommendations</h3>
+      <p>Smarter ways to find what you need.</p>
+    </div>
+  </div>
+</section>
+      {/* Ürün koleksiyonu */}
+      <section id="products" className="products">
         <div className="section-heading">
           <div>
             <p className="eyebrow">PRODUCT COLLECTION</p>
@@ -266,39 +416,15 @@ function App() {
           </span>
         </div>
 
-        <div className="catalog-toolbar">
-          <input
-            type="search"
-            className="search-input"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            aria-label="Search products"
-          />
-
-          <div className="category-filters" aria-label="Product categories">
-            {categories.map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={`category-button ${
-                  selectedCategory === item ? "active" : ""
-                }`}
-                onClick={() => setSelectedCategory(item)}
-                aria-pressed={selectedCategory === item}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-
+      {/* Yüklenme durumu */}
         {loading && <p>Loading products...</p>}
 
+        {/* Henüz ürün yoksa */}
         {!loading && !error && products.length === 0 && (
           <p>No products available yet. Add your first product below.</p>
         )}
 
+        {/* Ürün listesi */}
         {!loading && !error && products.length > 0 && (
           <>
             {filteredProducts.length === 0 ? (
@@ -310,21 +436,13 @@ function App() {
                 {filteredProducts.map((product) => {
                   const productCategory = getCategory(product);
 
-                  const imageUrl =
-                    productCategory === "Mice"
-                      ? "https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=800&q=80"
-                      : productCategory === "Headphones"
-                        ? "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80"
-                        : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
+                  // Her ürün için uygun görseli seç.
+                  const imageUrl = getProductImage(product, productCategory);
 
                   return (
                     <article className="product-card" key={product.id}>
                       <div className="product-image">
-                        <img
-                          src={imageUrl}
-                          alt={product.name}
-                          loading="lazy"
-                        />
+                        <img src={imageUrl} alt={product.name} loading="lazy" />
 
                         <span className="product-badge">
                           {product.stock > 0 ? "In Stock" : "Out of Stock"}
@@ -332,47 +450,53 @@ function App() {
                       </div>
 
                       <div className="product-info">
-                        <p className="category">{productCategory}</p>
+  <div className="product-title-row">
+    <p className="category">{productCategory}</p>
 
-                        <h3>{product.name}</h3>
+    <span className="stock-indicator">
+      {product.stock > 0 ? "Available" : "Sold Out"}
+    </span>
+  </div>
 
-                        <p className="description">
-                          {product.description || "No description provided."}
-                        </p>
+  <h3>{product.name}</h3>
 
-                        <div className="product-bottom">
-                          <div>
-                            <p className="price">
-                              {product.price.toLocaleString("tr-TR", {
-                                style: "currency",
-                                currency: "TRY",
-                              })}
-                            </p>
+  <p className="description">
+    {product.description || "No description provided."}
+  </p>
 
-                            <p className="stock">
-                              {product.stock} items in stock
-                            </p>
-                          </div>
-                        </div>
+  <div className="product-bottom">
+    <div>
+      <p className="price">
+        {product.price.toLocaleString("tr-TR", {
+          style: "currency",
+          currency: "TRY",
+        })}
+      </p>
 
-                        <div className="product-actions">
-                          <button
-                            type="button"
-                            className="edit-button"
-                            onClick={() => startEditing(product)}
-                          >
-                            Edit
-                          </button>
+      <p className="stock">
+        {product.stock} items in stock
+      </p>
+    </div>
+  </div>
 
-                          <button
-                            type="button"
-                            className="delete-button"
-                            onClick={() => void handleDelete(product)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
+  <div className="product-actions">
+    <button
+      type="button"
+      className="edit-button"
+      onClick={() => startEditing(product)}
+    >
+      Edit
+    </button>
+
+    <button
+      type="button"
+      className="delete-button"
+      onClick={() => void handleDelete(product)}
+    >
+      Delete
+    </button>
+  </div>
+</div>
                     </article>
                   );
                 })}
@@ -382,12 +506,11 @@ function App() {
         )}
       </section>
 
+      {/* Ürün ekleme ve düzenleme formu */}
       <section className="add-product" id="product-form">
         <p className="eyebrow">INVENTORY MANAGEMENT</p>
 
-        <h2>
-          {editingId !== null ? "Edit Product" : "Add a New Product"}
-        </h2>
+        <h2>{editingId !== null ? "Edit Product" : "Add a New Product"}</h2>
 
         <p className="form-description">
           {editingId !== null
@@ -397,6 +520,7 @@ function App() {
 
         <form onSubmit={handleSubmit} className="product-form">
           <label htmlFor="name">Product Name</label>
+
           <input
             id="name"
             type="text"
@@ -407,6 +531,7 @@ function App() {
           />
 
           <label htmlFor="description">Description</label>
+
           <textarea
             id="description"
             value={description}
@@ -416,6 +541,7 @@ function App() {
           />
 
           <label htmlFor="category">Product Category</label>
+
           <select
             id="category"
             value={category}
@@ -430,6 +556,7 @@ function App() {
           <div className="form-row">
             <div>
               <label htmlFor="price">Price (TRY)</label>
+
               <input
                 id="price"
                 type="number"
@@ -444,6 +571,7 @@ function App() {
 
             <div>
               <label htmlFor="stock">Stock Quantity</label>
+
               <input
                 id="stock"
                 type="number"
@@ -458,6 +586,7 @@ function App() {
           </div>
 
           {error && <p className="error">{error}</p>}
+
           {success && <p className="success">{success}</p>}
 
           <button className="submit-button" type="submit" disabled={saving}>
@@ -484,6 +613,7 @@ function App() {
         </form>
       </section>
 
+      {/* Alt bilgi */}
       <footer className="footer">
         SmartCart AI · A smarter shopping experience
       </footer>
