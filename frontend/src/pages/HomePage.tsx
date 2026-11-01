@@ -1,7 +1,9 @@
+
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useFavorites } from "../context/FavoritesContext";
 
 type Product = {
   id: number;
@@ -16,7 +18,6 @@ const API_URL = "http://localhost:8081/api/products";
 
 const categories = ["All", "Headphones", "Mice", "Other"];
 const editableCategories = ["Headphones", "Mice", "Other"];
-const { cartCount } = useCart();
 
 // Ürün kategorisini, isim ve açıklamasına göre tahmin eder.
 function inferCategory(product: Product): string {
@@ -48,22 +49,21 @@ function inferCategory(product: Product): string {
 function getCategory(product: Product): string {
   const inferredCategory = inferCategory(product);
 
-  // Ürün adı veya açıklaması kulaklık ya da mouse olduğunu gösteriyorsa
-  // eski Other kayıtlarında da doğru kategoriyi kullan.
   if (inferredCategory !== "Other") {
     return inferredCategory;
   }
 
-  // Diğer durumlarda veritabanındaki kategoriyi kullan.
   return product.category || "Other";
 }
 
 // Ürün adına ve açıklamasına göre uygun görseli seçer.
-function getProductImage(product: Product, productCategory: string): string {
+function getProductImage(
+  product: Product,
+  productCategory: string
+): string {
   const searchText =
     `${product.name} ${product.description ?? ""}`.toLowerCase();
 
-  // Mouse görseli
   if (
     productCategory === "Mice" ||
     searchText.includes("mouse") ||
@@ -72,7 +72,6 @@ function getProductImage(product: Product, productCategory: string): string {
     return "https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=800&q=80";
   }
 
-  // Kulaklık görseli
   if (
     productCategory === "Headphones" ||
     searchText.includes("kulaklık") ||
@@ -81,21 +80,25 @@ function getProductImage(product: Product, productCategory: string): string {
     return "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80";
   }
 
-  // Kol saati görseli
   if (searchText.includes("saat") || searchText.includes("watch")) {
     return "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
   }
 
-  // Hoparlör görseli
-  if (searchText.includes("hoparlör") || searchText.includes("speaker")) {
+  if (
+    searchText.includes("hoparlör") ||
+    searchText.includes("speaker")
+  ) {
     return "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=800&q=80";
   }
 
-  // Diğer ürünler için teknoloji temalı görsel
   return "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80";
 }
 
 function App() {
+  // Sepet ve favori bilgileri
+  const { cartCount } = useCart();
+  const { toggleFavorite, isFavorite } = useFavorites();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -125,7 +128,9 @@ function App() {
       setProducts(data);
       setError("");
     } catch {
-      setError("Unable to load products. Check that the backend is running.");
+      setError(
+        "Unable to load products. Check that the backend is running."
+      );
     } finally {
       setLoading(false);
     }
@@ -145,7 +150,8 @@ function App() {
       (product.description ?? "").toLowerCase().includes(query);
 
     const matchesCategory =
-      selectedCategory === "All" || getCategory(product) === selectedCategory;
+      selectedCategory === "All" ||
+      getCategory(product) === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -212,7 +218,6 @@ function App() {
 
     try {
       const isEditing = editingId !== null;
-
       const url = isEditing ? `${API_URL}/${editingId}` : API_URL;
 
       const response = await fetch(url, {
@@ -235,7 +240,7 @@ function App() {
         throw new Error(
           `Failed to ${isEditing ? "update" : "add"} product. ${
             responseText || `HTTP ${response.status}`
-          }`,
+          }`
         );
       }
 
@@ -244,12 +249,14 @@ function App() {
       setSuccess(
         isEditing
           ? "Product updated successfully!"
-          : "Product added successfully!",
+          : "Product added successfully!"
       );
 
       await fetchProducts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(
+        err instanceof Error ? err.message : "Something went wrong."
+      );
     } finally {
       setSaving(false);
     }
@@ -258,7 +265,7 @@ function App() {
   // Ürün silme işlemi.
   async function handleDelete(product: Product) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${product.name}"?`,
+      `Are you sure you want to delete "${product.name}"?`
     );
 
     if (!confirmed) return;
@@ -283,18 +290,19 @@ function App() {
 
       await fetchProducts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(
+        err instanceof Error ? err.message : "Something went wrong."
+      );
     }
   }
 
   return (
     <main className="app">
-      {/* Üst navigasyon */}
       {/* Marketplace Header */}
       <header className="navbar">
-        <a className="brand" href="/">
+        <Link className="brand" to="/">
           SmartCart <span>AI</span>
-        </a>
+        </Link>
 
         <div className="header-search">
           <input
@@ -316,95 +324,97 @@ function App() {
             ♡ <span>Favorites</span>
           </button>
 
-         <Link to="/cart" className="header-action">
-  My Cart ({cartCount})
-</Link>
+          <Link to="/cart" className="header-action">
+            My Cart ({cartCount})
+          </Link>
         </div>
       </header>
+
       {/* Category Navigation */}
-      {/* Category Navigation */}
-<nav className="category-nav">
-  {categories.map((item) => (
-    <button
-      key={item}
-      type="button"
-      className={selectedCategory === item ? "active" : ""}
-      onClick={() => {
-        setSelectedCategory(item);
-        document.getElementById("products")?.scrollIntoView({
-          behavior: "smooth",
-        });
-      }}
-    >
-      {item === "All" ? "All Products" : item}
-    </button>
-  ))}
-</nav>
+      <nav className="category-nav">
+        {categories.map((item) => (
+          <button
+            key={item}
+            type="button"
+            className={selectedCategory === item ? "active" : ""}
+            onClick={() => {
+              setSelectedCategory(item);
+              document.getElementById("products")?.scrollIntoView({
+                behavior: "smooth",
+              });
+            }}
+          >
+            {item === "All" ? "All Products" : item}
+          </button>
+        ))}
+      </nav>
 
       {/* Hero Banner */}
-<section className="hero">
-  <div className="hero-content">
-    <span className="hero-badge">
-      ✨ AI-POWERED SHOPPING
-    </span>
+      <section className="hero">
+        <div className="hero-content">
+          <span className="hero-badge">
+            ✨ AI-POWERED SHOPPING
+          </span>
 
-    <h1>
-      Find What You Love.
-      <br />
-      Shop Smarter.
-    </h1>
+          <h1>
+            Find What You Love.
+            <br />
+            Shop Smarter.
+          </h1>
 
-    <p className="hero-description">
-      Discover products you'll love with intelligent recommendations
-      and a shopping experience designed around you.
-    </p>
+          <p className="hero-description">
+            Discover products you'll love with intelligent recommendations
+            and a shopping experience designed around you.
+          </p>
 
-    <button
-      className="hero-button"
-      onClick={() =>
-        document.getElementById("products")?.scrollIntoView({
-          behavior: "smooth",
-        })
-      }
-    >
-      Explore Products →
-    </button>
-  </div>
+          <button
+            className="hero-button"
+            onClick={() =>
+              document.getElementById("products")?.scrollIntoView({
+                behavior: "smooth",
+              })
+            }
+          >
+            Explore Products →
+          </button>
+        </div>
 
-  <div className="hero-visual">
-    <div className="hero-circle">
-      <span>AI</span>
-      <small>SMART SHOPPING</small>
-    </div>
-  </div>
-</section>
-{/* Shopping Highlights */}
-<section className="shopping-highlights">
-  <div className="highlight-card">
-    <span className="highlight-icon">🎧</span>
-    <div>
-      <h3>Tech Essentials</h3>
-      <p>Technology for everyday life.</p>
-    </div>
-  </div>
+        <div className="hero-visual">
+          <div className="hero-circle">
+            <span>AI</span>
+            <small>SMART SHOPPING</small>
+          </div>
+        </div>
+      </section>
 
-  <div className="highlight-card">
-    <span className="highlight-icon">✨</span>
-    <div>
-      <h3>Smart Choices</h3>
-      <p>Discover products you'll love.</p>
-    </div>
-  </div>
+      {/* Shopping Highlights */}
+      <section className="shopping-highlights">
+        <div className="highlight-card">
+          <span className="highlight-icon">🎧</span>
+          <div>
+            <h3>Tech Essentials</h3>
+            <p>Technology for everyday life.</p>
+          </div>
+        </div>
 
-  <div className="highlight-card">
-    <span className="highlight-icon">🤖</span>
-    <div>
-      <h3>AI Recommendations</h3>
-      <p>Smarter ways to find what you need.</p>
-    </div>
-  </div>
-</section>
-      {/* Ürün koleksiyonu */}
+        <div className="highlight-card">
+          <span className="highlight-icon">✨</span>
+          <div>
+            <h3>Smart Choices</h3>
+            <p>Discover products you'll love.</p>
+          </div>
+        </div>
+
+        <div className="highlight-card">
+          <span className="highlight-icon">🤖</span>
+          <div>
+            <h3>AI Recommendations</h3>
+            <p>Smarter ways to find what you need.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Product Collection */}
       <section id="products" className="products">
         <div className="section-heading">
           <div>
@@ -418,15 +428,15 @@ function App() {
           </span>
         </div>
 
-      {/* Yüklenme durumu */}
+        {/* Loading State */}
         {loading && <p>Loading products...</p>}
 
-        {/* Henüz ürün yoksa */}
+        {/* No Products */}
         {!loading && !error && products.length === 0 && (
           <p>No products available yet. Add your first product below.</p>
         )}
 
-        {/* Ürün listesi */}
+        {/* Product List */}
         {!loading && !error && products.length > 0 && (
           <>
             {filteredProducts.length === 0 ? (
@@ -437,68 +447,97 @@ function App() {
               <div className="product-grid">
                 {filteredProducts.map((product) => {
                   const productCategory = getCategory(product);
+                  const imageUrl = getProductImage(
+                    product,
+                    productCategory
+                  );
 
-                  // Her ürün için uygun görseli seç.
-                  const imageUrl = getProductImage(product, productCategory);
+                  const favorite = isFavorite(product.id);
 
                   return (
                     <article className="product-card" key={product.id}>
                       <div className="product-image">
-                        <img src={imageUrl} alt={product.name} loading="lazy" />
+                        <img
+                          src={imageUrl}
+                          alt={product.name}
+                          loading="lazy"
+                        />
+
+                        {/* Favorite Button */}
+                        <button
+                          type="button"
+                          className={`favorite-button ${
+                            favorite ? "active" : ""
+                          }`}
+                          onClick={() => toggleFavorite(product)}
+                          aria-label={
+                            favorite
+                              ? "Remove from favorites"
+                              : "Add to favorites"
+                          }
+                          aria-pressed={favorite}
+                        >
+                          {favorite ? "♥" : "♡"}
+                        </button>
 
                         <span className="product-badge">
-                          {product.stock > 0 ? "In Stock" : "Out of Stock"}
+                          {product.stock > 0
+                            ? "In Stock"
+                            : "Out of Stock"}
                         </span>
                       </div>
 
                       <div className="product-info">
-  <div className="product-title-row">
-    <p className="category">{productCategory}</p>
+                        <div className="product-title-row">
+                          <p className="category">{productCategory}</p>
 
-    <span className="stock-indicator">
-      {product.stock > 0 ? "Available" : "Sold Out"}
-    </span>
-  </div>
+                          <span className="stock-indicator">
+                            {product.stock > 0
+                              ? "Available"
+                              : "Sold Out"}
+                          </span>
+                        </div>
 
-  <h3>{product.name}</h3>
+                        <h3>{product.name}</h3>
 
-  <p className="description">
-    {product.description || "No description provided."}
-  </p>
+                        <p className="description">
+                          {product.description ||
+                            "No description provided."}
+                        </p>
 
-  <div className="product-bottom">
-    <div>
-      <p className="price">
-        {product.price.toLocaleString("tr-TR", {
-          style: "currency",
-          currency: "TRY",
-        })}
-      </p>
+                        <div className="product-bottom">
+                          <div>
+                            <p className="price">
+                              {product.price.toLocaleString("tr-TR", {
+                                style: "currency",
+                                currency: "TRY",
+                              })}
+                            </p>
 
-      <p className="stock">
-        {product.stock} items in stock
-      </p>
-    </div>
-  </div>
+                            <p className="stock">
+                              {product.stock} items in stock
+                            </p>
+                          </div>
+                        </div>
 
-  <div className="product-actions">
-    <button
-      type="button"
-      className="edit-button"
-      onClick={() => startEditing(product)}
-    >
-      Edit
-    </button>
+                        <div className="product-actions">
+                          <button
+                            type="button"
+                            className="edit-button"
+                            onClick={() => startEditing(product)}
+                          >
+                            Edit
+                          </button>
 
-    <button
-      type="button"
-      className="delete-button"
-      onClick={() => void handleDelete(product)}
-    >
-      Delete
-    </button>
-  </div>
-</div>
+                          <button
+                            type="button"
+                            className="delete-button"
+                            onClick={() => void handleDelete(product)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
                     </article>
                   );
                 })}
@@ -508,11 +547,13 @@ function App() {
         )}
       </section>
 
-      {/* Ürün ekleme ve düzenleme formu */}
+      {/* Product Add / Edit Form */}
       <section className="add-product" id="product-form">
         <p className="eyebrow">INVENTORY MANAGEMENT</p>
 
-        <h2>{editingId !== null ? "Edit Product" : "Add a New Product"}</h2>
+        <h2>
+          {editingId !== null ? "Edit Product" : "Add a New Product"}
+        </h2>
 
         <p className="form-description">
           {editingId !== null
@@ -591,7 +632,11 @@ function App() {
 
           {success && <p className="success">{success}</p>}
 
-          <button className="submit-button" type="submit" disabled={saving}>
+          <button
+            className="submit-button"
+            type="submit"
+            disabled={saving}
+          >
             {saving
               ? "Saving..."
               : editingId !== null
@@ -615,7 +660,7 @@ function App() {
         </form>
       </section>
 
-      {/* Alt bilgi */}
+      {/* Footer */}
       <footer className="footer">
         SmartCart AI · A smarter shopping experience
       </footer>
