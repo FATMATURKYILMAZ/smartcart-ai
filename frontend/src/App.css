@@ -1596,3 +1596,257 @@ button {
     font-size: 27px;
   }
 }
+
+/* Seller Dashboard */
+
+.seller-dashboard {
+  min-height: 100vh;
+  display: flex;
+  background: #f8f7fc;
+  color: var(--text);
+}
+
+.seller-sidebar {
+  width: 250px;
+  min-height: 100vh;
+  padding: 30px 20px;
+  background: white;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.seller-logo {
+  font-size: 23px;
+  font-weight: 800;
+  color: var(--text);
+  text-decoration: none;
+  margin-bottom: 55px;
+}
+
+.seller-logo span {
+  color: var(--purple);
+}
+
+.sidebar-label,
+.seller-welcome {
+  font-size: 11px;
+  letter-spacing: 1.3px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.seller-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.seller-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 9px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.seller-nav-item:hover,
+.seller-nav-item.active {
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+
+.seller-store-link {
+  margin-top: auto;
+  padding: 13px;
+  color: var(--purple);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.seller-main {
+  flex: 1;
+  min-width: 0;
+  padding: 35px 40px;
+}
+
+.seller-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.seller-topbar h1 {
+  font-size: 30px;
+  margin-top: 7px;
+}
+
+.seller-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.seller-avatar {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--purple-soft);
+  color: var(--purple);
+  font-weight: 800;
+}
+
+.seller-welcome-card {
+  padding: 30px;
+  border-radius: 16px;
+  background: linear-gradient(120deg, #6d28d9, #8b5cf6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.seller-welcome-card p {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.seller-welcome-card h2 {
+  font-size: 25px;
+  margin: 12px 0;
+}
+
+.seller-welcome-card span {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.seller-welcome-icon {
+  font-size: 65px;
+  opacity: 0.8;
+}
+
+.seller-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.seller-stat-card,
+.seller-content-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 22px;
+}
+
+.seller-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.seller-stat-card span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.seller-stat-card strong {
+  font-size: 28px;
+  color: var(--purple);
+}
+
+.seller-stat-card small {
+  color: var(--muted);
+}
+
+.seller-content-card p {
+  color: var(--muted);
+  margin-top: 10px;
+  line-height: 1.6;
+}
+
+.seller-quick-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.seller-quick-actions a {
+  color: var(--purple);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 950px) {
+  .seller-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .seller-main {
+    padding: 25px;
+  }
+}
+
+@media (max-width: 600px) {
+  .seller-dashboard {
+    flex-direction: column;
+  }
+
+  .seller-sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .seller-logo {
+    margin-bottom: 20px;
+  }
+
+  .seller-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .seller-store-link {
+    margin-top: 15px;
+  }
+
+  .seller-main {
+    padding: 20px 15px;
+  }
+
+  .seller-topbar h1 {
+    font-size: 24px;
+  }
+
+  .seller-welcome-card h2 {
+    font-size: 20px;
+  }
+
+  .seller-welcome-icon {
+    display: none;
+  }
+
+  .seller-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .seller-stat-card {
+    padding: 15px;
+  }
+}
