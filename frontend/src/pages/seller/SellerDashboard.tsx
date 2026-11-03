@@ -1,8 +1,55 @@
 
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../../App.css";
 
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: string | null;
+}
+
+const API_URL = "http://localhost:8081/api/products";
+
 function SellerDashboard() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(API_URL);
+
+        if (!response.ok) {
+          throw new Error("Dashboard data could not be loaded.");
+        }
+
+        const data: Product[] = await response.json();
+        setProducts(data);
+      } catch (err) {
+        console.error(err);
+        setError("Could not load dashboard statistics.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
+
+  const totalProducts = products.length;
+
+  const lowStockProducts = products.filter(
+    (product) => product.stock <= 5
+  ).length;
+
   return (
     <div className="seller-dashboard">
       <aside className="seller-sidebar">
@@ -13,19 +60,31 @@ function SellerDashboard() {
         <p className="sidebar-label">SELLER MENU</p>
 
         <nav className="seller-nav">
-          <Link to="/seller/dashboard" className="seller-nav-item active">
+          <Link
+            to="/seller/dashboard"
+            className="seller-nav-item active"
+          >
             <span>▦</span> Dashboard
           </Link>
 
-          <Link to="/seller/products" className="seller-nav-item">
+          <Link
+            to="/seller/products"
+            className="seller-nav-item"
+          >
             <span>▣</span> My Products
           </Link>
 
-          <Link to="/seller/orders" className="seller-nav-item">
+          <Link
+            to="/seller/orders"
+            className="seller-nav-item"
+          >
             <span>▤</span> Orders
           </Link>
 
-          <Link to="/seller/inventory" className="seller-nav-item">
+          <Link
+            to="/seller/inventory"
+            className="seller-nav-item"
+          >
             <span>▧</span> Inventory
           </Link>
         </nav>
@@ -56,13 +115,20 @@ function SellerDashboard() {
               Track your products, inventory and orders from one place.
             </span>
           </div>
+
           <div className="seller-welcome-icon">✦</div>
         </section>
+
+        {error && (
+          <p className="seller-products-error">{error}</p>
+        )}
 
         <section className="seller-stats">
           <article className="seller-stat-card">
             <span>Total Products</span>
-            <strong>—</strong>
+            <strong>
+              {loading ? "..." : totalProducts}
+            </strong>
             <small>Products in your store</small>
           </article>
 
@@ -74,7 +140,9 @@ function SellerDashboard() {
 
           <article className="seller-stat-card">
             <span>Low Stock</span>
-            <strong>—</strong>
+            <strong>
+              {loading ? "..." : lowStockProducts}
+            </strong>
             <small>Products needing attention</small>
           </article>
 
@@ -85,6 +153,60 @@ function SellerDashboard() {
           </article>
         </section>
 
+<section className="inventory-alerts-card">
+  <div className="inventory-alerts-header">
+    <div>
+      <h2>Inventory Alerts</h2>
+      <p>Products that need your attention.</p>
+    </div>
+
+    <Link to="/seller/products">
+      Manage Inventory →
+    </Link>
+  </div>
+
+  {loading ? (
+    <p className="inventory-empty-message">
+      Loading inventory...
+    </p>
+  ) : lowStockProducts === 0 ? (
+    <div className="inventory-all-good">
+      <span>✓</span>
+      <div>
+        <strong>All products are well stocked!</strong>
+        <p>There are no products requiring attention.</p>
+      </div>
+    </div>
+  ) : (
+    <div className="inventory-alerts-list">
+      {products
+        .filter((product) => product.stock <= 5)
+        .sort((a, b) => a.stock - b.stock)
+        .map((product) => (
+          <div
+            className="inventory-alert-item"
+            key={product.id}
+          >
+            <div className="inventory-product-info">
+              <strong>{product.name}</strong>
+              <span>
+                {product.stock === 0
+                  ? "Out of Stock"
+                  : "Low Stock"}
+              </span>
+            </div>
+
+            <div className="inventory-stock-info">
+              <strong>{product.stock}</strong>
+              <span>
+                {product.stock === 1 ? "unit left" : "units left"}
+              </span>
+            </div>
+          </div>
+        ))}
+    </div>
+  )}
+</section>
         <section className="seller-content-card">
           <div>
             <h2>Store Management</h2>

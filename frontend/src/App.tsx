@@ -13,6 +13,8 @@ import CartPage from "./pages/CartPage";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import FavoritesPage from "./pages/FavoritesPage";
 import SellerDashboard from "./pages/seller/SellerDashboard";
+import SellerProductsPage from "./pages/seller/SellerProductsPage";
+
 function App() {
   return (
     <CartProvider>
@@ -24,6 +26,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/seller/dashboard" element={<SellerDashboard />} />
+            <Route path="/seller/products" element={<SellerProductsPage />} />
           </Routes>
         </BrowserRouter>
       </FavoritesProvider>
