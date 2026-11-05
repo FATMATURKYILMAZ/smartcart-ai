@@ -14,6 +14,7 @@ import { FavoritesProvider } from "./context/FavoritesContext";
 import FavoritesPage from "./pages/FavoritesPage";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerProductsPage from "./pages/seller/SellerProductsPage";
+import InventoryPage from "./pages/seller/InventoryPage";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/seller/dashboard" element={<SellerDashboard />} />
             <Route path="/seller/products" element={<SellerProductsPage />} />
+            <Route path="/seller/inventory" element={<InventoryPage />} />
           </Routes>
         </BrowserRouter>
       </FavoritesProvider>
