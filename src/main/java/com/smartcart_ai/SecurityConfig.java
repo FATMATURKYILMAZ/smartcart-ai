@@ -14,39 +14,36 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
-        );
+                configuration.setAllowedOrigins(
+                                List.of("http://localhost:5173"));
 
-        configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        );
+                configuration.setAllowedMethods(
+                                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-        configuration.setAllowedHeaders(
-                List.of("*")
-        );
+                configuration.setAllowedHeaders(
+                                List.of("*"));
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+                source.registerCorsConfiguration("/**", configuration);
 
-        return source;
-    }
+                return source;
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http)
+                        throws Exception {
 
-        http
-            .cors(cors -> {})
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                http
+                                .cors(cors -> {
+                                })
+                                .csrf(csrf -> csrf.disable())
+                                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
-        return http.build();
-    }
+                return http.build();
+        }
 }
