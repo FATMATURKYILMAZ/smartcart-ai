@@ -2,8 +2,9 @@
 package com.smartcart_ai;
 
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class OrderService {
@@ -19,12 +20,13 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
-    // Get order by ID
-    public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Order not found with ID: " + id));
-    }
+   public Order getOrderById(Long id) {
+    return orderRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Order not found with ID: " + id
+            ));
+}
 
     // Create a new order
     public Order createOrder(Order order) {
@@ -47,14 +49,16 @@ public Order updateOrderStatus(Long id, String newStatus) {
     String status = newStatus.trim().toUpperCase();
 
     if (!validStatuses.contains(status)) {
-        throw new IllegalArgumentException("Invalid order status: " + newStatus);
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid order status: " + newStatus
+        );
     }
 
     order.setStatus(status);
 
     return orderRepository.save(order);
 }
-
     // Delete order
     public void deleteOrder(Long id) {
         Order order = getOrderById(id);

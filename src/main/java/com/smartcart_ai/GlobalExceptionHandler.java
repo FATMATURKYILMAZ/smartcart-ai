@@ -41,6 +41,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, exception.getStatusCode());
     }
 
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(
             Exception exception) {
