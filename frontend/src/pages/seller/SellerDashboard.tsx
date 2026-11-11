@@ -339,16 +339,20 @@ function SellerDashboard() {
                         })}
                       </strong>
 
-                      <div className="dashboard-sales-bar-area">
+                      <div
+                        className="dashboard-sales-bar-area"
+                        title={`${month.label}: ${month.sales.toLocaleString(
+                          "en-US",
+                          {
+                            style: "currency",
+                            currency: "TRY",
+                          },
+                        )}`}
+                      >
                         <div
-                          className="dashboard-sales-bar"
-                          title={`${month.label}: ${month.sales.toLocaleString(
-                            "en-US",
-                            {
-                              style: "currency",
-                              currency: "TRY",
-                            },
-                          )}`}
+                          className={`dashboard-sales-bar ${
+                            month.sales === 0 ? "zero-sales" : ""
+                          }`}
                           style={{ height: `${barHeight}%` }}
                         />
                       </div>
