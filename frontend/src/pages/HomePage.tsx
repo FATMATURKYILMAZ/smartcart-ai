@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
+
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
 
@@ -17,7 +17,6 @@ type Product = {
 const API_URL = "http://localhost:8081/api/products";
 
 const categories = ["All", "Headphones", "Mice", "Other"];
-const editableCategories = ["Headphones", "Mice", "Other"];
 
 // Ürün kategorisini, isim ve açıklamasına göre tahmin eder.
 function inferCategory(product: Product): string {
@@ -96,23 +95,17 @@ function getProductImage(
 
 function App() {
   // Sepet ve favori bilgileri
-  const { cartCount } = useCart();
+  const { cartCount, addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
 
+  // Sayfa durumları
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
+
+  // Arama ve kategori filtreleme
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [category, setCategory] = useState("Headphones");
 
   // Backend üzerinden ürünleri getirir.
   async function fetchProducts() {
@@ -156,146 +149,6 @@ function App() {
     return matchesSearch && matchesCategory;
   });
 
-  // Form alanlarını temizler.
-  function resetForm() {
-    setName("");
-    setDescription("");
-    setPrice("");
-    setStock("");
-    setCategory("Headphones");
-    setEditingId(null);
-  }
-
-  // Düzenlenecek ürünü forma aktarır.
-  function startEditing(product: Product) {
-    setEditingId(product.id);
-    setName(product.name);
-    setDescription(product.description ?? "");
-    setPrice(String(product.price));
-    setStock(String(product.stock));
-    setCategory(getCategory(product));
-
-    setError("");
-    setSuccess("");
-
-    document.getElementById("product-form")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-
-  // Yeni ürün ekleme ve mevcut ürünü güncelleme işlemi.
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    setError("");
-    setSuccess("");
-
-    const numericPrice = Number(price);
-    const numericStock = Number(stock);
-
-    if (!name.trim()) {
-      setError("Product name is required.");
-      return;
-    }
-
-    if (!editableCategories.includes(category)) {
-      setError("Please select a valid product category.");
-      return;
-    }
-
-    if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
-      setError("Price must be greater than zero.");
-      return;
-    }
-
-    if (!Number.isInteger(numericStock) || numericStock < 0) {
-      setError("Stock must be a whole number, zero or greater.");
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const isEditing = editingId !== null;
-      const url = isEditing ? `${API_URL}/${editingId}` : API_URL;
-
-      const response = await fetch(url, {
-        method: isEditing ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          description: description.trim(),
-          price: numericPrice,
-          stock: numericStock,
-          category,
-        }),
-      });
-
-      if (!response.ok) {
-        const responseText = await response.text();
-
-        throw new Error(
-          `Failed to ${isEditing ? "update" : "add"} product. ${
-            responseText || `HTTP ${response.status}`
-          }`
-        );
-      }
-
-      resetForm();
-
-      setSuccess(
-        isEditing
-          ? "Product updated successfully!"
-          : "Product added successfully!"
-      );
-
-      await fetchProducts();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong."
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  // Ürün silme işlemi.
-  async function handleDelete(product: Product) {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${product.name}"?`
-    );
-
-    if (!confirmed) return;
-
-    setError("");
-    setSuccess("");
-
-    try {
-      const response = await fetch(`${API_URL}/${product.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete product.");
-      }
-
-      if (editingId === product.id) {
-        resetForm();
-      }
-
-      setSuccess("Product deleted successfully!");
-
-      await fetchProducts();
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong."
-      );
-    }
-  }
-
   return (
     <main className="app">
       {/* Marketplace Header */}
@@ -320,9 +173,9 @@ function App() {
             ♙ <span>My Account</span>
           </button>
 
-          <button type="button" className="header-action">
+          <Link to="/favorites" className="header-action">
             ♡ <span>Favorites</span>
-          </button>
+          </Link>
 
           <Link to="/cart" className="header-action">
             My Cart ({cartCount})
@@ -363,8 +216,8 @@ function App() {
           </h1>
 
           <p className="hero-description">
-            Discover products you'll love with intelligent recommendations
-            and a shopping experience designed around you.
+            Discover products you'll love with intelligent
+            recommendations and a shopping experience designed around you.
           </p>
 
           <button
@@ -431,9 +284,14 @@ function App() {
         {/* Loading State */}
         {loading && <p>Loading products...</p>}
 
+        {/* Error State */}
+        {!loading && error && (
+          <p className="error-message">{error}</p>
+        )}
+
         {/* No Products */}
         {!loading && !error && products.length === 0 && (
-          <p>No products available yet. Add your first product below.</p>
+          <p>No products available yet. Please check back soon.</p>
         )}
 
         {/* Product List */}
@@ -455,7 +313,10 @@ function App() {
                   const favorite = isFavorite(product.id);
 
                   return (
-                    <article className="product-card" key={product.id}>
+                    <article
+                      className="product-card"
+                      key={product.id}
+                    >
                       <div className="product-image">
                         <img
                           src={imageUrl}
@@ -489,7 +350,9 @@ function App() {
 
                       <div className="product-info">
                         <div className="product-title-row">
-                          <p className="category">{productCategory}</p>
+                          <p className="category">
+                            {productCategory}
+                          </p>
 
                           <span className="stock-indicator">
                             {product.stock > 0
@@ -521,20 +384,22 @@ function App() {
                         </div>
 
                         <div className="product-actions">
-                          <button
-                            type="button"
-                            className="edit-button"
-                            onClick={() => startEditing(product)}
+                          <Link
+                            to={`/products/${product.id}`}
+                            className="view-product-button"
                           >
-                            Edit
-                          </button>
+                            View Details
+                          </Link>
 
                           <button
                             type="button"
-                            className="delete-button"
-                            onClick={() => void handleDelete(product)}
+                            className="add-to-cart-button"
+                            disabled={product.stock <= 0}
+                            onClick={() => addToCart(product, 1)}
                           >
-                            Delete
+                            {product.stock > 0
+                              ? "Add to Cart"
+                              : "Out of Stock"}
                           </button>
                         </div>
                       </div>
@@ -545,119 +410,6 @@ function App() {
             )}
           </>
         )}
-      </section>
-
-      {/* Product Add / Edit Form */}
-      <section className="add-product" id="product-form">
-        <p className="eyebrow">INVENTORY MANAGEMENT</p>
-
-        <h2>
-          {editingId !== null ? "Edit Product" : "Add a New Product"}
-        </h2>
-
-        <p className="form-description">
-          {editingId !== null
-            ? "Update the product details below."
-            : "Add a product to your SmartCart collection."}
-        </p>
-
-        <form onSubmit={handleSubmit} className="product-form">
-          <label htmlFor="name">Product Name</label>
-
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Wireless Mouse"
-            required
-          />
-
-          <label htmlFor="description">Description</label>
-
-          <textarea
-            id="description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Describe your product"
-            rows={3}
-          />
-
-          <label htmlFor="category">Product Category</label>
-
-          <select
-            id="category"
-            value={category}
-            onChange={(event) => setCategory(event.target.value)}
-            required
-          >
-            <option value="Headphones">Headphones</option>
-            <option value="Mice">Mice</option>
-            <option value="Other">Other</option>
-          </select>
-
-          <div className="form-row">
-            <div>
-              <label htmlFor="price">Price (TRY)</label>
-
-              <input
-                id="price"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                placeholder="499.90"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="stock">Stock Quantity</label>
-
-              <input
-                id="stock"
-                type="number"
-                min="0"
-                step="1"
-                value={stock}
-                onChange={(event) => setStock(event.target.value)}
-                placeholder="10"
-                required
-              />
-            </div>
-          </div>
-
-          {error && <p className="error">{error}</p>}
-
-          {success && <p className="success">{success}</p>}
-
-          <button
-            className="submit-button"
-            type="submit"
-            disabled={saving}
-          >
-            {saving
-              ? "Saving..."
-              : editingId !== null
-                ? "Save Changes"
-                : "Add Product"}
-          </button>
-
-          {editingId !== null && (
-            <button
-              className="cancel-button"
-              type="button"
-              onClick={() => {
-                resetForm();
-                setError("");
-                setSuccess("");
-              }}
-            >
-              Cancel Editing
-            </button>
-          )}
-        </form>
       </section>
 
       {/* Footer */}
