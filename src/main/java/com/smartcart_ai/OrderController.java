@@ -33,10 +33,14 @@ public class OrderController {
 
     // Create a new order
     @PostMapping
-public ResponseEntity<Order> createOrder(@Valid @RequestBody Order order) {
-    Order createdOrder = orderService.createOrder(order);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
-}
+    public ResponseEntity<Order> createOrder(
+            @Valid @RequestBody CreateOrderRequest request) {
+
+        Order createdOrder = orderService.createOrder(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(createdOrder);
+    }
 
     // Update order status
     @PatchMapping("/{id}/status")
@@ -44,7 +48,8 @@ public ResponseEntity<Order> createOrder(@Valid @RequestBody Order order) {
             @PathVariable Long id,
             @RequestBody String newStatus) {
 
-        Order updatedOrder = orderService.updateOrderStatus(id, newStatus);
+        Order updatedOrder =
+                orderService.updateOrderStatus(id, newStatus);
 
         return ResponseEntity.ok(updatedOrder);
     }
@@ -53,7 +58,6 @@ public ResponseEntity<Order> createOrder(@Valid @RequestBody Order order) {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
-
         return ResponseEntity.noContent().build();
     }
 }
