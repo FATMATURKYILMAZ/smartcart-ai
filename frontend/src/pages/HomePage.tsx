@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
+import { getProductImage } from "../utils/productImage";
 
 type Product = {
   id: number;
@@ -55,45 +56,7 @@ function getCategory(product: Product): string {
   return product.category || "Other";
 }
 
-// Ürün adına ve açıklamasına göre uygun görseli seçer.
-function getProductImage(
-  product: Product,
-  productCategory: string
-): string {
-  const searchText =
-    `${product.name} ${product.description ?? ""}`.toLowerCase();
-
-  if (
-    productCategory === "Mice" ||
-    searchText.includes("mouse") ||
-    searchText.includes("fare")
-  ) {
-    return "https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=800&q=80";
-  }
-
-  if (
-    productCategory === "Headphones" ||
-    searchText.includes("kulaklık") ||
-    searchText.includes("headphone")
-  ) {
-    return "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80";
-  }
-
-  if (searchText.includes("saat") || searchText.includes("watch")) {
-    return "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
-  }
-
-  if (
-    searchText.includes("hoparlör") ||
-    searchText.includes("speaker")
-  ) {
-    return "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=800&q=80";
-  }
-
-  return "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80";
-}
-
-function App() {
+function HomePage() {
   // Sepet ve favori bilgileri
   const { cartCount, addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
@@ -121,9 +84,7 @@ function App() {
       setProducts(data);
       setError("");
     } catch {
-      setError(
-        "Unable to load products. Check that the backend is running."
-      );
+      setError("Unable to load products. Check that the backend is running.");
     } finally {
       setLoading(false);
     }
@@ -177,6 +138,10 @@ function App() {
             ♡ <span>Favorites</span>
           </Link>
 
+          <Link to="/my-orders" className="header-action">
+            <span>My Orders</span>
+          </Link>
+
           <Link to="/cart" className="header-action">
             My Cart ({cartCount})
           </Link>
@@ -205,9 +170,7 @@ function App() {
       {/* Hero Banner */}
       <section className="hero">
         <div className="hero-content">
-          <span className="hero-badge">
-            ✨ AI-POWERED SHOPPING
-          </span>
+          <span className="hero-badge">✨ AI-POWERED SHOPPING</span>
 
           <h1>
             Find What You Love.
@@ -216,8 +179,8 @@ function App() {
           </h1>
 
           <p className="hero-description">
-            Discover products you'll love with intelligent
-            recommendations and a shopping experience designed around you.
+            Discover products you'll love with intelligent recommendations and a
+            shopping experience designed around you.
           </p>
 
           <button
@@ -305,6 +268,7 @@ function App() {
               <div className="product-grid">
                 {filteredProducts.map((product) => {
                   const productCategory = getCategory(product);
+
                   const imageUrl = getProductImage(
                     product,
                     productCategory
@@ -313,10 +277,7 @@ function App() {
                   const favorite = isFavorite(product.id);
 
                   return (
-                    <article
-                      className="product-card"
-                      key={product.id}
-                    >
+                    <article className="product-card" key={product.id}>
                       <div className="product-image">
                         <img
                           src={imageUrl}
@@ -342,30 +303,23 @@ function App() {
                         </button>
 
                         <span className="product-badge">
-                          {product.stock > 0
-                            ? "In Stock"
-                            : "Out of Stock"}
+                          {product.stock > 0 ? "In Stock" : "Out of Stock"}
                         </span>
                       </div>
 
                       <div className="product-info">
                         <div className="product-title-row">
-                          <p className="category">
-                            {productCategory}
-                          </p>
+                          <p className="category">{productCategory}</p>
 
                           <span className="stock-indicator">
-                            {product.stock > 0
-                              ? "Available"
-                              : "Sold Out"}
+                            {product.stock > 0 ? "Available" : "Sold Out"}
                           </span>
                         </div>
 
                         <h3>{product.name}</h3>
 
                         <p className="description">
-                          {product.description ||
-                            "No description provided."}
+                          {product.description || "No description provided."}
                         </p>
 
                         <div className="product-bottom">
@@ -420,4 +374,4 @@ function App() {
   );
 }
 
-export default App;
+export default HomePage;

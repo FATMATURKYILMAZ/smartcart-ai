@@ -16,6 +16,7 @@ import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerProductsPage from "./pages/seller/SellerProductsPage";
 import InventoryPage from "./pages/seller/InventoryPage";
 import OrdersPage from "./pages/seller/OrdersPage";
+import MyOrdersPage from "./pages/MyOrdersPage";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/seller/products" element={<SellerProductsPage />} />
             <Route path="/seller/inventory" element={<InventoryPage />} />
             <Route path="/seller/orders" element={<OrdersPage />} />
+            <Route path="/my-orders" element={<MyOrdersPage />} />
           </Routes>
         </BrowserRouter>
       </FavoritesProvider>
