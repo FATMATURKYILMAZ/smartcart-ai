@@ -3822,3 +3822,146 @@ button {
 .cart-product-image.headphone-image {
   object-position: 55% center;
 }
+
+/* Authentication Pages */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: linear-gradient(135deg, #f5f1ff, #ffffff, #eee8ff);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 38px;
+  background: #ffffff;
+  border: 1px solid #eee8fa;
+  border-radius: 20px;
+  box-shadow: 0 16px 50px rgba(80, 45, 140, 0.10);
+}
+
+.auth-brand {
+  display: block;
+  margin-bottom: 28px;
+  color: #5426a8;
+  font-size: 25px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}
+
+.auth-brand span {
+  color: #9b6bdf;
+}
+
+.auth-card h1 {
+  margin-bottom: 10px;
+  color: #241b35;
+  font-size: 27px;
+  text-align: center;
+}
+
+.auth-description {
+  margin-bottom: 28px;
+  color: #777083;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-card label {
+  margin-top: 8px;
+  color: #352849;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #e3dced;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-card input:focus {
+  border-color: #8050cf;
+  box-shadow: 0 0 0 3px rgba(128, 80, 207, 0.12);
+}
+
+.auth-card form button {
+  margin-top: 16px;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6835b8, #925bd7);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.auth-card form button:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.auth-card form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.auth-error {
+  margin-top: 8px;
+  color: #d93050;
+  font-size: 13px;
+}
+
+.auth-switch {
+  margin-top: 24px;
+  color: #777083;
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth-switch a,
+.auth-back {
+  color: #6835b8;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-switch a:hover,
+.auth-back:hover {
+  text-decoration: underline;
+}
+
+.auth-back {
+  display: block;
+  margin-top: 20px;
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 26px 20px;
+  }
+
+  .auth-card h1 {
+    font-size: 23px;
+  }
+}

@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { getProductImage } from "../utils/productImage";
+import { useAuth } from "../context/AuthContext";
 
 type Product = {
   id: number;
@@ -60,6 +60,7 @@ function HomePage() {
   // Sepet ve favori bilgileri
   const { cartCount, addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { user, isAuthenticated, logout } = useAuth();
 
   // Sayfa durumları
   const [products, setProducts] = useState<Product[]>([]);
@@ -104,8 +105,7 @@ function HomePage() {
       (product.description ?? "").toLowerCase().includes(query);
 
     const matchesCategory =
-      selectedCategory === "All" ||
-      getCategory(product) === selectedCategory;
+      selectedCategory === "All" || getCategory(product) === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -130,9 +130,21 @@ function HomePage() {
         </div>
 
         <div className="header-actions">
-          <button type="button" className="header-action">
-            ♙ <span>My Account</span>
-          </button>
+          {isAuthenticated ? (
+            <>
+              <div className="header-action">
+                ♙ <span>Hi, {user?.fullName}</span>
+              </div>
+
+              <button type="button" className="header-action" onClick={logout}>
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="header-action">
+              ♙ <span>My Account</span>
+            </Link>
+          )}
 
           <Link to="/favorites" className="header-action">
             ♡ <span>Favorites</span>
@@ -248,9 +260,7 @@ function HomePage() {
         {loading && <p>Loading products...</p>}
 
         {/* Error State */}
-        {!loading && error && (
-          <p className="error-message">{error}</p>
-        )}
+        {!loading && error && <p className="error-message">{error}</p>}
 
         {/* No Products */}
         {!loading && !error && products.length === 0 && (
@@ -269,21 +279,14 @@ function HomePage() {
                 {filteredProducts.map((product) => {
                   const productCategory = getCategory(product);
 
-                  const imageUrl = getProductImage(
-                    product,
-                    productCategory
-                  );
+                  const imageUrl = getProductImage(product, productCategory);
 
                   const favorite = isFavorite(product.id);
 
                   return (
                     <article className="product-card" key={product.id}>
                       <div className="product-image">
-                        <img
-                          src={imageUrl}
-                          alt={product.name}
-                          loading="lazy"
-                        />
+                        <img src={imageUrl} alt={product.name} loading="lazy" />
 
                         {/* Favorite Button */}
                         <button
@@ -351,9 +354,7 @@ function HomePage() {
                             disabled={product.stock <= 0}
                             onClick={() => addToCart(product, 1)}
                           >
-                            {product.stock > 0
-                              ? "Add to Cart"
-                              : "Out of Stock"}
+                            {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
                           </button>
                         </div>
                       </div>
