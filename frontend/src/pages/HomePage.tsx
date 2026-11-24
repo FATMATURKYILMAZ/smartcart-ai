@@ -135,6 +135,9 @@ function HomePage() {
               <div className="header-action">
                 ♙ <span>Hi, {user?.fullName}</span>
               </div>
+              <Link to="/account-settings" className="header-action">
+                Account Settings
+              </Link>
 
               <button type="button" className="header-action" onClick={logout}>
                 Sign Out

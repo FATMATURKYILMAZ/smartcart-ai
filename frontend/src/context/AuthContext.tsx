@@ -37,6 +37,10 @@ interface AuthContextType {
     password: string
   ) => Promise<void>;
   logout: () => void;
+  changePassword: (
+  currentPassword: string,
+  newPassword: string
+) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(
@@ -133,6 +137,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data: AuthResponse = await response.json();
     saveAuth(data);
   }
+  async function changePassword(
+  currentPassword: string,
+  newPassword: string
+) {
+  if (!auth.token) {
+    throw new Error("You must be logged in to change your password.");
+  }
+
+  const response = await fetch(`${API_URL}/change-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${auth.token}`,
+    },
+    body: JSON.stringify({
+      currentPassword,
+      newPassword,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+
+    throw new Error(
+      errorData?.message || "Failed to change password."
+    );
+  }
+}
 
   function logout() {
     sessionStorage.removeItem("smartcart_auth");
@@ -141,15 +173,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{
-        user: auth.user,
-        token: auth.token,
-        isAuthenticated: Boolean(auth.token && auth.user),
-        login,
-        register,
-        logout,
-      }}
-    >
+  value={{
+    user: auth.user,
+    token: auth.token,
+    isAuthenticated: Boolean(auth.token && auth.user),
+    login,
+    register,
+    logout,
+    changePassword,
+  }}
+>
       {children}
     </AuthContext.Provider>
   );

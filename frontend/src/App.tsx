@@ -16,6 +16,7 @@ import InventoryPage from "./pages/seller/InventoryPage";
 import OrdersPage from "./pages/seller/OrdersPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import AccountSettingsPage from "./pages/AccountSettingsPage";
 
 import "./App.css";
 
@@ -39,6 +40,7 @@ function App() {
               <Route path="/seller/orders" element={<OrdersPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/account-settings" element={<AccountSettingsPage />} />
 
               {/* Authentication pages will be added here */}
             </Routes>
