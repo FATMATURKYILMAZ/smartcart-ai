@@ -4,6 +4,7 @@ package com.smartcart_ai;
 import com.smartcart_ai.dto.AuthResponse;
 import com.smartcart_ai.dto.LoginRequest;
 import com.smartcart_ai.dto.RegisterRequest;
+import com.smartcart_ai.dto.UpdateProfileRequest;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.smartcart_ai.dto.ChangePasswordRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+
 
 @Service
 public class AuthService {
@@ -113,4 +115,22 @@ public class AuthService {
                 userRepository.save(user);
         }
 
+public AuthResponse updateProfile(
+                User user,
+                UpdateProfileRequest request) {
+
+        String fullName = request.getFullName().trim();
+
+        user.setFullName(fullName);
+
+        User updatedUser = userRepository.save(user);
+
+        return new AuthResponse(
+                null,
+                "Bearer",
+                updatedUser.getId(),
+                updatedUser.getFullName(),
+                updatedUser.getEmail(),
+                updatedUser.getRole());
+}
 }
